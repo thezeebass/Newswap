@@ -1,8 +1,8 @@
 // content.js
 // NewSwap — main content script
-// Handles text replacement, MutationObserver, and the "original page" modal.
+// Handles text replacement, image replacement, MutationObserver, and the "original page" modal.
 // Config source priority: chrome.storage.sync (user-built set) → bundled
-// NEWSWAP_CONFIG in config.js (fallback/default set).
+// SKELETOR_CONFIG in config.js (fallback/default set).
 
 (function() {
   'use strict';
@@ -27,7 +27,6 @@
       });
     });
 
-    // Sort: full names first, then by pattern length descending
     reps.sort((a, b) => {
       if (a.type === "full" && b.type !== "full") return -1;
       if (a.type !== "full" && b.type === "full") return 1;
@@ -123,6 +122,59 @@
     }
   }
 
+  // ── IMAGE REPLACEMENT ──
+  async function walkAndReplaceImages(root) {
+    const images = root.querySelectorAll('img');
+    
+    for (const img of images) {
+      if (img.dataset.newswapReplaced) continue;
+      
+      const context = (
+        (img.alt || '') + ' ' +
+        (img.title || '') + ' ' +
+        (img.closest('figure')?.textContent || '') + ' ' +
+        (img.closest('article, .article, [class*="article"]')?.textContent?.slice(0, 800) || '') + ' ' +
+        (img.closest('div')?.textContent?.slice(0, 400) || '')
+      );
+      
+      for (const rep of replacements) {
+        if (rep.type !== 'full') continue;
+        if (!rep.pattern.test(context)) continue;
+        
+        img.dataset.newswapOriginal = img.src;
+        img.dataset.newswapReplaced = rep.replacement;
+        img.dataset.newswapOriginalAlt = img.alt;
+        
+        img.src = chrome.runtime.getURL('images/placeholder.png');
+        img.alt = rep.replacement;
+        
+        fetchReplacementImage(img, rep.replacement);
+        
+        break;
+      }
+    }
+  }
+
+  async function fetchReplacementImage(imgElement, replacementName) {
+    try {
+      const settings = await new Promise((resolve) => {
+        chrome.storage?.sync?.get(['newswapSettings'], (result) => {
+          resolve(result.newswapSettings || {});
+        });
+      });
+      
+      const resolved = await resolveImage(null, replacementName, settings);
+      
+      if (resolved) {
+        imgElement.src = resolved.url;
+        imgElement.style.border = '2px solid #4361ee';
+        imgElement.title = `NewSwap: ${resolved.tier === 4 ? 'calming scene' : replacementName}`;
+      }
+    } catch (err) {
+      console.log('NewSwap image fetch failed:', err);
+    }
+  }
+
   // ── MUTATION OBSERVER ──
   const observer = new MutationObserver(mutations => {
     if (!enabled) return;
@@ -131,6 +183,7 @@
       mutation.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
           walkAndReplace(node);
+          walkAndReplaceImages(node);
         } else if (node.nodeType === Node.TEXT_NODE) {
           replaceInNode(node);
         }
@@ -182,7 +235,7 @@
     if (modalElement) modalElement.style.display = 'none';
   }
 
-  // ── RESTORE ORIGINAL TEXT ──
+  // ── RESTORE ORIGINAL TEXT AND IMAGES ──
   function restoreOriginal() {
     originalTexts.forEach((original, node) => {
       if (node.parentNode) {
@@ -190,11 +243,22 @@
       }
     });
     originalTexts.clear();
+    
+    document.querySelectorAll('img[data-newswap-original]').forEach(img => {
+      img.src = img.dataset.newswapOriginal;
+      img.alt = img.dataset.newswapOriginalAlt || img.alt;
+      img.style.border = '';
+      img.title = '';
+      delete img.dataset.newswapOriginal;
+      delete img.dataset.newswapReplaced;
+      delete img.dataset.newswapOriginalAlt;
+    });
   }
 
   // ── RE-APPLY REPLACEMENTS ──
   function reapplyReplacements() {
     walkAndReplace(document.body);
+    walkAndReplaceImages(document.body);
   }
 
   // ── INITIALIZE ──
@@ -206,12 +270,12 @@
         enabled = result.newswapEnabled !== false;
         if (enabled) {
           walkAndReplace(document.body);
+          walkAndReplaceImages(document.body);
           observer.observe(document.body, { childList: true, subtree: true });
         }
       });
     });
 
-    // Listen for messages from popup / options page
     chrome.runtime?.onMessage?.addListener((request, sender, sendResponse) => {
       if (request.action === 'toggle') {
         enabled = request.enabled;
@@ -232,7 +296,6 @@
         sendResponse({ enabled });
       }
       if (request.action === 'configUpdated') {
-        // Options page saved new entries — reload and reapply live
         restoreOriginal();
         loadConfig((compiled) => {
           replacements = compiled;

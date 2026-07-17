@@ -105,6 +105,16 @@
     });
   }
 
+// Add to options.js storage
+chrome.storage.sync.set({
+  newswapEntries: entries,
+  newswapSettings: {
+    pexelsKey: '',
+    zenMode: false,
+    allowFanArt: false
+  }
+});
+
   function loadEntries(callback) {
     chrome.storage.sync.get(['newswapEntries'], (result) => {
       entries = deserializeEntries(result.newswapEntries);
