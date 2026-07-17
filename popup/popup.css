@@ -1,0 +1,239 @@
+/* popup.css */
+/* Skeletor's Cabinet - Popup Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 340px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f0f23;
+  color: #eee;
+}
+
+.popup-container {
+  padding: 0;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #16213e;
+  border-bottom: 2px solid #e94560;
+}
+
+.popup-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.popup-header h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e94560;
+  letter-spacing: 0.5px;
+}
+
+.popup-body {
+  padding: 16px 20px;
+}
+
+/* Toggle Switch */
+.toggle-section {
+  margin-bottom: 16px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.toggle-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toggle-label input {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #333;
+  border-radius: 12px;
+  transition: background 0.3s;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-label input:checked + .toggle-slider {
+  background: #e94560;
+}
+
+.toggle-label input:checked + .toggle-slider::after {
+  transform: translateX(20px);
+}
+
+/* Action Button */
+.action-btn {
+  width: 100%;
+  padding: 12px;
+  background: #16213e;
+  border: 1px solid #e94560;
+  color: #e94560;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.action-btn:hover {
+  background: #e94560;
+  color: white;
+}
+
+/* Stats Section */
+.stats-section {
+  margin-bottom: 16px;
+}
+
+.stats-section h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-item {
+  background: #16213e;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid #333;
+}
+
+.stat-item.highlight {
+  border-color: #e94560;
+  background: rgba(233, 69, 96, 0.1);
+}
+
+.stat-number {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #e94560;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+/* Villain List */
+.villain-list h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.villain-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #222;
+  border-radius: 6px;
+}
+
+.villain-list ul {
+  list-style: none;
+}
+
+.villain-list li {
+  padding: 5px 10px;
+  font-size: 12px;
+  border-bottom: 1px solid #1a1a2e;
+  display: flex;
+  justify-content: space-between;
+}
+
+.villain-list li:last-child {
+  border-bottom: none;
+}
+
+.villain-list li.category-header {
+  background: #16213e;
+  color: #e94560;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  justify-content: center;
+}
+
+.villain-list strong {
+  color: #e94560;
+}
+
+.villain-list li span:last-child {
+  color: #888;
+  font-size: 11px;
+}
+
+/* Footer */
+.popup-footer {
+  padding: 10px 20px;
+  background: #16213e;
+  text-align: center;
+  border-top: 1px solid #333;
+}
+
+.version {
+  font-size: 11px;
+  color: #666;
+}
+
+/* Scrollbar */
+.villain-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.villain-scroll::-webkit-scrollbar-track {
+  background: #0f0f23;
+}
+
+.villain-scroll::-webkit-scrollbar-thumb {
+  background: #e94560;
+  border-radius: 2px;
+}

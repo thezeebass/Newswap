@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <img src="../icons/icon32.png" alt="Skeletor" class="popup-icon">
+      <h1>Skeletor's Cabinet</h1>
+    </div>
+
+    <div class="popup-body">
+      <div class="toggle-section">
+        <label class="toggle-label">
+          <span class="toggle-text">Enable Replacements</span>
+          <input type="checkbox" id="toggle-switch" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <button id="show-original-btn" class="action-btn">
+        👁️ Show Original Page
+      </button>
+
+      <div class="stats-section">
+        <h3>Active Mappings</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-number">1</span>
+            <span class="stat-label">Big Bad</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">24</span>
+            <span class="stat-label">Cabinet</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">10</span>
+            <span class="stat-label">Industry</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">10</span>
+            <span class="stat-label">Sports</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">20</span>
+            <span class="stat-label">Pop Culture</span>
+          </div>
+          <div class="stat-item highlight">
+            <span class="stat-number">65</span>
+            <span class="stat-label">Total</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="villain-list">
+        <h3>Current Villains</h3>
+        <div class="villain-scroll">
+          <ul id="villain-list">
+            <li><strong>Skeletor</strong> ← Donald Trump</li>
+            <li class="category-header">— Cabinet —</li>
+            <li><strong>Beast Man</strong> ← J.D. Vance</li>
+            <li><strong>Tri-Klops</strong> ← Marco Rubio</li>
+            <li><strong>Mer-Man</strong> ← Scott Bessent</li>
+            <li><strong>Trap Jaw</strong> ← Pete Hegseth</li>
+            <li><strong>Evil-Lyn</strong> ← Pam Bondi</li>
+            <li><strong>Clawful</strong> ← Doug Burgum</li>
+            <li><strong>Whiplash</strong> ← Brooke Rollins</li>
+            <li><strong>Two Bad</strong> ← Howard Lutnick</li>
+            <li><strong>Shadow Weaver</strong> ← Lori Chavez-DeRemer</li>
+            <li><strong>Stinkor</strong> ← RFK Jr.</li>
+            <li><strong>Modulok</strong> ← Scott Turner</li>
+            <li><strong>Webstor</strong> ← Sean Duffy</li>
+            <li><strong>Kobra Khan</strong> ← Chris Wright</li>
+            <li><strong>Catra</strong> ← Linda McMahon</li>
+            <li><strong>Spikor</strong> ← Doug Collins</li>
+            <li><strong>Blast-Attak</strong> ← Markwayne Mullin</li>
+            <li><strong>Screeech</strong> ← Susie Wiles</li>
+            <li><strong>Ninjor</strong> ← Lee Zeldin</li>
+            <li><strong>Faker</strong> ← Russ Vought</li>
+            <li><strong>Panthor</strong> ← Jamieson Greer</li>
+            <li><strong>Sssqueeze</strong> ← John Ratcliffe</li>
+            <li><strong>Scorpia</strong> ← Tulsi Gabbard</li>
+            <li><strong>Entrapta</strong> ← Kelly Loeffler</li>
+            <li><strong>Hordak</strong> ← Michael Waltz</li>
+            <li class="category-header">— Industry —</li>
+            <li><strong>Shredder</strong> ← Elon Musk</li>
+            <li><strong>Megatron</strong> ← Jeff Bezos</li>
+            <li><strong>Krang</strong> ← Mark Zuckerberg</li>
+            <li><strong>Starscream</strong> ← Tim Cook</li>
+            <li><strong>Mumm-Ra</strong> ← Sundar Pichai</li>
+            <li><strong>Cobra Commander</strong> ← Jamie Dimon</li>
+            <li><strong>Destro</strong> ← Warren Buffett</li>
+            <li><strong>Skeletor (2002)</strong> ← Larry Ellison</li>
+            <li><strong>Frieza</strong> ← Jensen Huang</li>
+            <li><strong>Cell</strong> ← Satya Nadella</li>
+            <li class="category-header">— Sports —</li>
+            <li><strong>M. Bison</strong> ← LeBron James</li>
+            <li><strong>Bane</strong> ← Patrick Mahomes</li>
+            <li><strong>Thanos</strong> ← Tom Brady</li>
+            <li><strong>Azula</strong> ← Serena Williams</li>
+            <li><strong>Freeza</strong> ← Shohei Ohtani</li>
+            <li><strong>Shego</strong> ← Caitlin Clark</li>
+            <li><strong>The Joker</strong> ← Travis Kelce</li>
+            <li><strong>Magneto</strong> ← Stephen Curry</li>
+            <li><strong>Venom</strong> ← Lionel Messi</li>
+            <li><strong>Harley Quinn</strong> ← Taylor Swift</li>
+            <li class="category-header">— Pop Culture —</li>
+            <li><strong>Ursula</strong> ← Beyoncé</li>
+            <li><strong>Plankton</strong> ← Drake</li>
+            <li><strong>Darth Vader</strong> ← Kanye West</li>
+            <li><strong>Cruella de Vil</strong> ← Kim Kardashian</li>
+            <li><strong>Rick Sanchez</strong> ← MrBeast</li>
+            <li><strong>Stewie Griffin</strong> ← Joe Rogan</li>
+            <li><strong>Eric Cartman</strong> ← Dave Chappelle</li>
+            <li><strong>Red Hulk</strong> ← Dwayne Johnson</li>
+            <li><strong>Deadpool</strong> ← Ryan Reynolds</li>
+            <li><strong>Azula</strong> ← Zendaya</li>
+            <li><strong>Marceline</strong> ← Billie Eilish</li>
+            <li><strong>Ice King</strong> ← Post Malone</li>
+            <li><strong>Star Butterfly</strong> ← Olivia Rodrigo</li>
+            <li><strong>Mojo Jojo</strong> ← Bad Bunny</li>
+            <li><strong>Aku</strong> ← The Weeknd</li>
+            <li><strong>Oogie Boogie</strong> ← Kendrick Lamar</li>
+            <li><strong>Lord Hater</strong> ← Travis Scott</li>
+            <li><strong>Lord Dominator</strong> ← Charli XCX</li>
+            <li><strong>Pacifica Northwest</strong> ← Sabrina Carpenter</li>
+            <li><strong>Peridot</strong> ← Chappell Roan</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <span class="version">v2.0.0</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
