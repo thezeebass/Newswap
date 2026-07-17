@@ -37,13 +37,31 @@
     return reps;
   }
 
+  // ── DESERIALIZE: reconstruct RegExp objects from stored source/flags ──
+  function deserializeEntries(stored) {
+    const out = {};
+    Object.entries(stored || {}).forEach(([key, entry]) => {
+      out[key] = {
+        original: entry.original,
+        replacement: entry.replacement,
+        category: entry.category,
+        blacklist: entry.blacklist,
+        patterns: entry.patterns.map(p => ({
+          regex: new RegExp(p.source, p.flags),
+          type: p.type
+        }))
+      };
+    });
+    return out;
+  }
+
   // ── LOAD CONFIG: storage first, bundled file as fallback ──
   function loadConfig(callback) {
     chrome.storage?.sync?.get(['newswapEntries'], (result) => {
       if (result.newswapEntries && Object.keys(result.newswapEntries).length > 0) {
-        callback(compileReplacements(result.newswapEntries));
-      } else if (typeof NEWSWAP_CONFIG !== 'undefined') {
-        callback(compileReplacements(NEWSWAP_CONFIG.entries));
+        callback(compileReplacements(deserializeEntries(result.newswapEntries)));
+      } else if (typeof SKELETOR_CONFIG !== 'undefined') {
+        callback(compileReplacements(SKELETOR_CONFIG.entries));
       } else {
         callback([]);
       }
