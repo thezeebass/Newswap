@@ -163,7 +163,7 @@
         });
       });
       
-      const resolved = await resolveImage(null, replacementName, settings);
+      const resolved = await resolveImage(replacementName, settings);
       
       if (resolved) {
         imgElement.src = resolved.url;
