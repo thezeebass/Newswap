@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NewSwap — Configure Replacements</title>
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+
+  <header class="ns-header">
+    <h1>NewSwap</h1>
+    <p>Build your own name replacement list. Everything is stored locally in your browser — nothing is sent anywhere.</p>
+  </header>
+
+  <main class="ns-main">
+
+    <section class="ns-card">
+      <h2>Add a replacement</h2>
+      <form id="entry-form">
+        <div class="ns-field-row">
+          <label>
+            Name to replace
+            <input type="text" id="field-original" placeholder="e.g. Jane Example" required>
+          </label>
+          <label>
+            Replacement name
+            <input type="text" id="field-replacement" placeholder="e.g. Captain Placeholder" required>
+          </label>
+        </div>
+
+        <div class="ns-field-row">
+          <label>
+            Category (optional)
+            <input type="text" id="field-category" placeholder="e.g. Sports, Music, Work">
+          </label>
+          <label>
+            Match style
+            <select id="field-matchstyle">
+              <option value="full_surname">Full name + surname</option>
+              <option value="full_only">Full name only</option>
+              <option value="surname_only">Surname only</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="ns-field-row">
+          <label class="ns-full-width">
+            Avoid false matches (optional, comma-separated)
+            <input type="text" id="field-blacklist" placeholder="e.g. baker's dozen, master baker">
+            <span class="ns-hint">Use this if the surname is also a common word. Any text containing these phrases will be skipped.</span>
+          </label>
+        </div>
+
+        <div class="ns-actions">
+          <button type="submit" class="ns-btn ns-btn-primary">Add replacement</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="ns-card">
+      <div class="ns-card-header-row">
+        <h2>Your replacements</h2>
+        <div class="ns-actions">
+          <button id="btn-export" class="ns-btn ns-btn-secondary">Export JSON</button>
+          <label class="ns-btn ns-btn-secondary ns-file-label">
+            Import JSON
+            <input type="file" id="btn-import" accept="application/json" hidden>
+          </label>
+          <button id="btn-clear-all" class="ns-btn ns-btn-danger">Clear all</button>
+        </div>
+      </div>
+      <div id="entry-list" class="ns-entry-list">
+        <p class="ns-empty-state">No replacements yet. Add one above to get started.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="ns-toast" class="ns-toast"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f4f5f7;
+  color: #1a1a2e;
+}
+
+.ns-header {
+  background: #1a1a2e;
+  color: white;
+  padding: 24px 32px;
+}
+
+.ns-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  color: #4361ee;
+}
+
+.ns-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.ns-main {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ns-card {
+  background: white;
+  border: 1px solid #e2e4e9;
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+.ns-card h2 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.ns-card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ns-card-header-row h2 {
+  margin: 0;
+}
+
+.ns-field-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ns-field-row label {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  gap: 6px;
+}
+
+.ns-full-width {
+  flex-basis: 100% !important;
+}
+
+.ns-field-row input,
+.ns-field-row select {
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid #d6d8dd;
+  border-radius: 6px;
+  font-weight: 400;
+}
+
+.ns-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #888;
+}
+
+.ns-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ns-btn {
+  border: none;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.ns-btn-primary {
+  background: #4361ee;
+  color: white;
+}
+
+.ns-btn-primary:hover {
+  background: #3249c9;
+}
+
+.ns-btn-secondary {
+  background: #eef0f5;
+  color: #1a1a2e;
+}
+
+.ns-btn-secondary:hover {
+  background: #dfe2ea;
+}
+
+.ns-btn-danger {
+  background: #fdecec;
+  color: #c62828;
+}
+
+.ns-btn-danger:hover {
+  background: #f9d5d5;
+}
+
+.ns-file-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ns-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ns-empty-state {
+  color: #999;
+  font-size: 14px;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.ns-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid #e2e4e9;
+  border-radius: 8px;
+  background: #fafbfc;
+}
+
+.ns-entry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ns-entry-names {
+  font-size: 14px;
+}
+
+.ns-entry-names b {
+  color: #4361ee;
+}
+
+.ns-entry-category {
+  font-size: 12px;
+  color: #999;
+}
+
+.ns-entry-remove {
+  background: none;
+  border: none;
+  color: #c62828;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+.ns-entry-remove:hover {
+  text-decoration: underline;
+}
+
+.ns-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1a2e;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.ns-toast.ns-toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

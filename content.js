@@ -1,6 +1,8 @@
 // content.js
-// Main content script for Skeletor's Cabinet EXPANDED
-// Handles text replacement, MutationObserver, and original page modal
+// NewSwap — main content script
+// Handles text replacement, MutationObserver, and the "original page" modal.
+// Config source priority: chrome.storage.sync (user-built set) → bundled
+// NEWSWAP_CONFIG in config.js (fallback/default set).
 
 (function() {
   'use strict';
@@ -10,38 +12,20 @@
   let originalTexts = new Map();
   let modalElement = null;
 
-  // ── BUILD REPLACEMENT ARRAY FROM ALL CATEGORIES ──
-  function buildReplacements() {
+  // ── COMPILE A RAW ENTRIES OBJECT INTO A SORTED REPLACEMENT LIST ──
+  function compileReplacements(entriesObj) {
     const reps = [];
 
-    // Trump
-    SKELETOR_CONFIG.trump.patterns.forEach(p => {
-      reps.push({
-        pattern: p.regex,
-        type: p.type,
-        replacement: SKELETOR_CONFIG.trump.villain,
-        blacklist: SKELETOR_CONFIG.trump.blacklist
-      });
-    });
-
-    // Helper to process a category
-    function processCategory(category) {
-      Object.values(category).forEach(member => {
-        member.patterns.forEach(p => {
-          reps.push({
-            pattern: p.regex,
-            type: p.type,
-            replacement: member.villain
-          });
+    Object.values(entriesObj || {}).forEach(entry => {
+      (entry.patterns || []).forEach(p => {
+        reps.push({
+          pattern: p.regex,
+          type: p.type,
+          replacement: entry.replacement,
+          blacklist: entry.blacklist
         });
       });
-    }
-
-    // Process all categories
-    processCategory(SKELETOR_CONFIG.cabinet);
-    processCategory(SKELETOR_CONFIG.industry);
-    processCategory(SKELETOR_CONFIG.sports);
-    processCategory(SKELETOR_CONFIG.pop_culture);
+    });
 
     // Sort: full names first, then by pattern length descending
     reps.sort((a, b) => {
@@ -51,6 +35,19 @@
     });
 
     return reps;
+  }
+
+  // ── LOAD CONFIG: storage first, bundled file as fallback ──
+  function loadConfig(callback) {
+    chrome.storage?.sync?.get(['newswapEntries'], (result) => {
+      if (result.newswapEntries && Object.keys(result.newswapEntries).length > 0) {
+        callback(compileReplacements(result.newswapEntries));
+      } else if (typeof NEWSWAP_CONFIG !== 'undefined') {
+        callback(compileReplacements(NEWSWAP_CONFIG.entries));
+      } else {
+        callback([]);
+      }
+    });
   }
 
   // ── CHECK BLACKLIST ──
@@ -74,12 +71,10 @@
     for (const rep of replacements) {
       if (!rep.pattern.test(text)) continue;
 
-      // For capitalized "Trump" only, check blacklist
       if (rep.type === "capitalized" && rep.blacklist) {
         if (isBlacklisted(text, rep.blacklist)) continue;
       }
 
-      // Store original text before replacement
       if (!originalTexts.has(node)) {
         originalTexts.set(node, text);
       }
@@ -103,7 +98,6 @@
     let node;
     while (node = walker.nextNode()) nodes.push(node);
 
-    // Batch process for performance
     const batchSize = 100;
     for (let i = 0; i < nodes.length; i += batchSize) {
       const batch = nodes.slice(i, i + batchSize);
@@ -131,18 +125,18 @@
     if (modalElement) return;
 
     modalElement = document.createElement('div');
-    modalElement.id = 'skeletor-modal';
+    modalElement.id = 'newswap-modal';
     modalElement.innerHTML = `
-      <div class="skeletor-modal-overlay">
-        <div class="skeletor-modal-content">
-          <div class="skeletor-modal-header">
+      <div class="newswap-modal-overlay">
+        <div class="newswap-modal-content">
+          <div class="newswap-modal-header">
             <h2>👁️ Original Page</h2>
-            <button class="skeletor-close-btn">&times;</button>
+            <button class="newswap-close-btn">&times;</button>
           </div>
-          <div class="skeletor-modal-body">
-            <p>Showing original text. Close to return to Skeletor mode.</p>
-            <div class="skeletor-restore-btn-container">
-              <button class="skeletor-restore-btn">Restore Skeletor Mode</button>
+          <div class="newswap-modal-body">
+            <p>Showing original text. Close to return to NewSwap mode.</p>
+            <div class="newswap-restore-btn-container">
+              <button class="newswap-restore-btn">Restore Replacements</button>
             </div>
           </div>
         </div>
@@ -151,12 +145,12 @@
 
     document.body.appendChild(modalElement);
 
-    modalElement.querySelector('.skeletor-close-btn').addEventListener('click', hideModal);
-    modalElement.querySelector('.skeletor-restore-btn').addEventListener('click', () => {
+    modalElement.querySelector('.newswap-close-btn').addEventListener('click', hideModal);
+    modalElement.querySelector('.newswap-restore-btn').addEventListener('click', () => {
       hideModal();
       restoreOriginal();
     });
-    modalElement.querySelector('.skeletor-modal-overlay').addEventListener('click', (e) => {
+    modalElement.querySelector('.newswap-modal-overlay').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) hideModal();
     });
   }
@@ -187,17 +181,19 @@
 
   // ── INITIALIZE ──
   function init() {
-    replacements = buildReplacements();
+    loadConfig((compiled) => {
+      replacements = compiled;
 
-    chrome.storage?.sync?.get(['skeletorEnabled'], (result) => {
-      enabled = result.skeletorEnabled !== false;
-      if (enabled) {
-        walkAndReplace(document.body);
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
+      chrome.storage?.sync?.get(['newswapEnabled'], (result) => {
+        enabled = result.newswapEnabled !== false;
+        if (enabled) {
+          walkAndReplace(document.body);
+          observer.observe(document.body, { childList: true, subtree: true });
+        }
+      });
     });
 
-    // Listen for messages from popup
+    // Listen for messages from popup / options page
     chrome.runtime?.onMessage?.addListener((request, sender, sendResponse) => {
       if (request.action === 'toggle') {
         enabled = request.enabled;
@@ -217,11 +213,19 @@
       if (request.action === 'getStatus') {
         sendResponse({ enabled });
       }
+      if (request.action === 'configUpdated') {
+        // Options page saved new entries — reload and reapply live
+        restoreOriginal();
+        loadConfig((compiled) => {
+          replacements = compiled;
+          if (enabled) reapplyReplacements();
+        });
+        sendResponse({ success: true });
+      }
       return true;
     });
   }
 
-  // Wait for DOM to be ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
