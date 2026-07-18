@@ -1,8 +1,5 @@
 // content.js
-// NewSwap — main content script
-// Handles text replacement, image replacement, MutationObserver, and the "original page" modal.
-// Config source priority: chrome.storage.sync (user-built set) → bundled
-// SKELETOR_CONFIG in config.js (fallback/default set).
+// NewSwap — main content script (DIAGNOSTIC VERSION with console logging)
 
 (function() {
   'use strict';
@@ -12,10 +9,8 @@
   let originalTexts = new Map();
   let modalElement = null;
 
-  // ── COMPILE A RAW ENTRIES OBJECT INTO A SORTED REPLACEMENT LIST ──
   function compileReplacements(entriesObj) {
     const reps = [];
-
     Object.values(entriesObj || {}).forEach(entry => {
       (entry.patterns || []).forEach(p => {
         reps.push({
@@ -26,17 +21,14 @@
         });
       });
     });
-
     reps.sort((a, b) => {
       if (a.type === "full" && b.type !== "full") return -1;
       if (a.type !== "full" && b.type === "full") return 1;
       return b.pattern.source.length - a.pattern.source.length;
     });
-
     return reps;
   }
 
-  // ── DESERIALIZE: reconstruct RegExp objects from stored source/flags ──
   function deserializeEntries(stored) {
     const out = {};
     Object.entries(stored || {}).forEach(([key, entry]) => {
@@ -54,27 +46,24 @@
     return out;
   }
 
-  // ── LOAD CONFIG: storage first, bundled file as fallback ──
   function loadConfig(callback) {
     chrome.storage?.sync?.get(['newswapEntries'], (result) => {
       if (result.newswapEntries && Object.keys(result.newswapEntries).length > 0) {
         callback(compileReplacements(deserializeEntries(result.newswapEntries)));
-      } else if (typeof SKELETOR_CONFIG !== 'undefined') {
-        callback(compileReplacements(SKELETOR_CONFIG.entries));
+      } else if (typeof NEWSWAP_CONFIG !== 'undefined') {
+        callback(compileReplacements(NEWSWAP_CONFIG.entries));
       } else {
         callback([]);
       }
     });
   }
 
-  // ── CHECK BLACKLIST ──
   function isBlacklisted(text, blacklist) {
     if (!blacklist) return false;
     const lower = text.toLowerCase();
     return blacklist.some(word => lower.includes(word.toLowerCase()));
   }
 
-  // ── REPLACE TEXT IN NODE ──
   function replaceInNode(node) {
     if (node.nodeType !== Node.TEXT_NODE) return false;
     if (node.parentElement?.isContentEditable) return false;
@@ -87,15 +76,12 @@
 
     for (const rep of replacements) {
       if (!rep.pattern.test(text)) continue;
-
       if (rep.type === "capitalized" && rep.blacklist) {
         if (isBlacklisted(text, rep.blacklist)) continue;
       }
-
       if (!originalTexts.has(node)) {
         originalTexts.set(node, text);
       }
-
       text = text.replace(rep.pattern, rep.replacement);
       changed = true;
     }
@@ -106,7 +92,6 @@
     return changed;
   }
 
-  // ── WALK AND REPLACE ──
   function walkAndReplace(root) {
     const walker = document.createTreeWalker(
       root, NodeFilter.SHOW_TEXT, null, false
@@ -122,13 +107,75 @@
     }
   }
 
-  // ── IMAGE REPLACEMENT ──
-  async function walkAndReplaceImages(root) {
+  // ── IMAGE BLUR (SIMPLIFIED) ──
+  // Blurs images whose surrounding context matches a replacement name.
+  // Clicking the blurred image reveals it. No external image fetching.
+
+  function blurImage(img, replacementName) {
+    if (img.dataset.newswapBlurred) return;
+
+    img.dataset.newswapOriginal = img.src;
+    img.dataset.newswapOriginalAlt = img.alt || '';
+    img.dataset.newswapBlurred = replacementName;
+
+    // Wrap in a container for the overlay UI
+    const wrapper = document.createElement('div');
+    wrapper.className = 'newswap-blur-wrapper';
+    wrapper.style.cssText = 'position:relative;display:inline-block;overflow:hidden;';
+
+    img.parentNode.insertBefore(wrapper, img);
+    wrapper.appendChild(img);
+
+    // Apply blur styles
+    img.classList.add('newswap-blurred');
+
+    // Add click-to-reveal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'newswap-blur-overlay';
+    overlay.innerHTML = '<span>👁️ Click to reveal</span>';
+    wrapper.appendChild(overlay);
+
+    // Click handler: toggle reveal
+    wrapper.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isRevealed = wrapper.classList.contains('newswap-revealed');
+      if (isRevealed) {
+        wrapper.classList.remove('newswap-revealed');
+        img.classList.add('newswap-blurred');
+      } else {
+        wrapper.classList.add('newswap-revealed');
+        img.classList.remove('newswap-blurred');
+      }
+    });
+
+    console.log('[NewSwap] Blurred image for:', replacementName);
+  }
+
+  function unblurImage(img) {
+    if (!img.dataset.newswapBlurred) return;
+    const wrapper = img.closest('.newswap-blur-wrapper');
+    if (wrapper) {
+      wrapper.parentNode.insertBefore(img, wrapper);
+      wrapper.remove();
+    }
+    img.classList.remove('newswap-blurred');
+    img.src = img.dataset.newswapOriginal || img.src;
+    img.alt = img.dataset.newswapOriginalAlt || img.alt;
+    delete img.dataset.newswapOriginal;
+    delete img.dataset.newswapOriginalAlt;
+    delete img.dataset.newswapBlurred;
+  }
+
+  function walkAndBlurImages(root) {
     const images = root.querySelectorAll('img');
-    
+    console.log(`[NewSwap] Scanning ${images.length} images in`, root.nodeName || 'document');
+
     for (const img of images) {
-      if (img.dataset.newswapReplaced) continue;
-      
+      if (img.dataset.newswapBlurred) continue;
+      if (img.closest('.newswap-blur-wrapper')) continue;
+
+      // Build context from image and surrounding page text
       const context = (
         (img.alt || '') + ' ' +
         (img.title || '') + ' ' +
@@ -136,54 +183,25 @@
         (img.closest('article, .article, [class*="article"]')?.textContent?.slice(0, 800) || '') + ' ' +
         (img.closest('div')?.textContent?.slice(0, 400) || '')
       );
-      
+
+      // Check if any replacement pattern matches the context
       for (const rep of replacements) {
         if (rep.type !== 'full') continue;
         if (!rep.pattern.test(context)) continue;
-        
-        img.dataset.newswapOriginal = img.src;
-        img.dataset.newswapReplaced = rep.replacement;
-        img.dataset.newswapOriginalAlt = img.alt;
-        
-        img.src = chrome.runtime.getURL('images/placeholder.png');
-        img.alt = rep.replacement;
-        
-        fetchReplacementImage(img, rep.replacement);
-        
-        break;
+
+        blurImage(img, rep.replacement);
+        break; // blur once per image
       }
     }
   }
 
-  async function fetchReplacementImage(imgElement, replacementName) {
-    try {
-      const settings = await new Promise((resolve) => {
-        chrome.storage?.sync?.get(['newswapSettings'], (result) => {
-          resolve(result.newswapSettings || {});
-        });
-      });
-      
-      const resolved = await resolveImage(replacementName, settings);
-      
-      if (resolved) {
-        imgElement.src = resolved.url;
-        imgElement.style.border = '2px solid #4361ee';
-        imgElement.title = `NewSwap: ${resolved.tier === 4 ? 'calming scene' : replacementName}`;
-      }
-    } catch (err) {
-      console.log('NewSwap image fetch failed:', err);
-    }
-  }
-
-  // ── MUTATION OBSERVER ──
   const observer = new MutationObserver(mutations => {
     if (!enabled) return;
-
     mutations.forEach(mutation => {
       mutation.addedNodes.forEach(node => {
         if (node.nodeType === Node.ELEMENT_NODE) {
           walkAndReplace(node);
-          walkAndReplaceImages(node);
+          walkAndBlurImages(node);
         } else if (node.nodeType === Node.TEXT_NODE) {
           replaceInNode(node);
         }
@@ -191,10 +209,8 @@
     });
   });
 
-  // ── ORIGINAL PAGE MODAL ──
   function createModal() {
     if (modalElement) return;
-
     modalElement = document.createElement('div');
     modalElement.id = 'newswap-modal';
     modalElement.innerHTML = `
@@ -213,9 +229,7 @@
         </div>
       </div>
     `;
-
     document.body.appendChild(modalElement);
-
     modalElement.querySelector('.newswap-close-btn').addEventListener('click', hideModal);
     modalElement.querySelector('.newswap-restore-btn').addEventListener('click', () => {
       hideModal();
@@ -235,7 +249,6 @@
     if (modalElement) modalElement.style.display = 'none';
   }
 
-  // ── RESTORE ORIGINAL TEXT AND IMAGES ──
   function restoreOriginal() {
     originalTexts.forEach((original, node) => {
       if (node.parentNode) {
@@ -243,34 +256,30 @@
       }
     });
     originalTexts.clear();
-    
-    document.querySelectorAll('img[data-newswap-original]').forEach(img => {
-      img.src = img.dataset.newswapOriginal;
-      img.alt = img.dataset.newswapOriginalAlt || img.alt;
-      img.style.border = '';
-      img.title = '';
-      delete img.dataset.newswapOriginal;
-      delete img.dataset.newswapReplaced;
-      delete img.dataset.newswapOriginalAlt;
+
+    // Unblur all images
+    document.querySelectorAll('img[data-newswap-blurred]').forEach(img => {
+      unblurImage(img);
     });
   }
 
-  // ── RE-APPLY REPLACEMENTS ──
   function reapplyReplacements() {
     walkAndReplace(document.body);
-    walkAndReplaceImages(document.body);
+    walkAndBlurImages(document.body);
   }
 
-  // ── INITIALIZE ──
   function init() {
+    console.log('[NewSwap] Initializing...');
     loadConfig((compiled) => {
       replacements = compiled;
+      console.log('[NewSwap] Loaded', replacements.length, 'replacements');
 
       chrome.storage?.sync?.get(['newswapEnabled'], (result) => {
         enabled = result.newswapEnabled !== false;
+        console.log('[NewSwap] Enabled:', enabled);
         if (enabled) {
           walkAndReplace(document.body);
-          walkAndReplaceImages(document.body);
+          walkAndBlurImages(document.body);
           observer.observe(document.body, { childList: true, subtree: true });
         }
       });
