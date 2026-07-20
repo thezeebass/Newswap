@@ -1,1 +1,44 @@
-Newswap User GuideThis guide walks through everyday use of Newswap: adding replacements, toggling it on and off, viewing the original page, and backing up your list.1\. Opening the configuration pageClick the Newswap icon in your toolbar, then Manage replacements. This opens a full browser tab where you build your replacement list. You can also reach it directly by right-clicking the Newswap icon and choosing Options.2\. Adding your first replacementOn the configuration page, fill in the Add a replacement form:Name to replace � the text as it actually appears on pages, e.g. Jane Example.Replacement name � what you want to see instead, e.g. Captain Placeholder.Category (optional) � a label to help you organize a long list, e.g. Work, Sports, News.Match style � controls how much of the name gets matched:Full name + surname � matches both "Jane Example" and standalone "Example". Best for most names.Full name only � only matches the exact full phrase "Jane Example". Use this if the surname alone is too common a word to safely swap everywhere.Surname only � matches just "Example" wherever it appears.Avoid false matches (optional) � if the surname doubles as an everyday word (e.g. "Baker", "Hunter"), list phrases here, separated by commas, that should block the swap when nearby. For example, entering baker's dozen, master baker stops those phrases from being altered while "Chris Baker" or standalone "Baker" elsewhere still gets replaced.Click Add replacement. It's saved immediately and takes effect on any open tabs.3\. Managing your listEvery saved entry appears under Your replacements, showing the original name, the replacement, and category. Click Remove on any entry to delete it.Click Clear all to wipe your entire list and start over. This can't be undone, so export first if you want a backup (see below).4\. Turning replacements on or offClick the Newswap toolbar icon and use the switch next to Replacements active. This affects only the current page/tab session � reloading a page re-applies your setting.5\. Viewing the original pageSometimes you want to double-check what a page actually says. Click the toolbar icon, then Show original page. A panel appears confirming you're viewing unmodified text. Click Restore Replacements to bring your swaps back, or close the panel to keep viewing the original text until you navigate away or reload.6\. Backing up or sharing your listOn the configuration page:Export JSON downloads your full replacement list as a .json file � a good habit before making big changes, or if you want to move your list to another computer.Import JSON lets you load a previously exported file. Imported entries are merged into your existing list rather than replacing it, so importing is safe to do repeatedly.TipsStart with Full name + surname matching for most names � it's the most forgiving default.If you notice unrelated words getting swapped, switch that entry to Full name only, or add the offending phrase to the blacklist field.Longer, more specific full-name patterns are always checked before shorter surname-only ones, so overlapping names won't produce broken partial swaps.Entries sync via your Chrome sign-in (chrome.storage.sync), so your list follows you to other computers signed into the same Chrome account.
+NewSwap
+A Chrome extension that replaces any name on any webpage with a name you choose. It ships empty — you decide what gets replaced with what, using the built-in configuration page.
+What it does
+NewSwap scans the text on every page you visit and swaps names you've configured for names you've chosen instead. It works across page loads and dynamically loaded content (infinite scroll, single-page apps, etc.), and you can toggle it on or off per browsing session, or view the original unmodified page at any time.
+Privacy
+All matching happens locally in your browser using regular expressions built from the entries you add. Your replacement list is stored in `chrome.storage.sync` (synced across your own signed-in Chrome instances only). Nothing is sent to any server. There is no network activity, no analytics, and no third-party code.
+Installation
+Download or clone this repository.
+Open Chrome and go to `chrome://extensions`.
+Enable Developer mode (top right toggle).
+Click Load unpacked and select the project folder.
+NewSwap will appear in your extensions toolbar. Pin it for easy access.
+Getting started
+The extension ships with two example entries so you can see the data format, but no real replacements are active until you add your own. Click the NewSwap icon, then Manage replacements to open the configuration page.
+See USER_GUIDE.md for a full walkthrough of adding, exporting, and importing replacements.
+Project structure
+```
+newswap/
+├── manifest.json       Extension manifest (Manifest V3)
+├── config.js            Bundled fallback config (used only until you add your own entries)
+├── content.js            Injected into every page: does the matching/replacing
+├── styles.css             Styles for the in-page "show original" modal
+├── options.html/.css/.js  The configuration page (the config builder)
+├── popup/
+│   ├── popup.html         Toolbar popup: on/off toggle, show original, open settings
+│   └── popup.js
+└── icons/                 Toolbar icons
+```
+How matching works
+Each replacement entry has one or more patterns:
+Type	Behavior
+`full`	Matches a full name (e.g. "Jane Example"). Always checked first.
+`surname`	Matches a single word, case-insensitive. Checked after full-name patterns.
+`capitalized`	Matches a single word, case-sensitive, and supports a blacklist to skip common-word collisions (e.g. a surname that's also an ordinary English word).
+The configuration page builds these patterns for you automatically from a plain name — you don't need to write regex by hand unless you're editing `config.js` directly.
+Configuration storage
+New installs read from the bundled `config.js` as a starting fallback.
+As soon as you add or import an entry through the options page, your saved set (in `chrome.storage.sync`) takes over completely, and `config.js` is ignored.
+Use Export JSON on the options page to back up your list or share it with someone else; Import JSON merges a file back in.
+License
+Copyright <2026> <THEZEEBASS>
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE..
